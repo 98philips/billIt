@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                app:cardCornerRadius="16dp"
+                android:layout_margin="8dp"
+                app:cardElevation="2dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:padding="16dp"
+                    >
+                    <LinearLayout
+                        android:id="@+id/month_year"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/month"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:textSize="20sp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_height="wrap_content"
+                            android:text=""/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="left">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Est. Bill Amt."
+                                />
+                            <TextView
+                                android:id="@+id/bill_amt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textStyle="bold"
+                                android:textSize="30sp"
+                                android:text=""
+                                />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="right"
+                            >
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Est. Energy Con."
+                                />
+                            <TextView
+                                android:id="@+id/energy_con"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textStyle="bold"
+                                android:textSize="30sp"
+                                android:text=""
+                                />
+                        </LinearLayout>
+                    </LinearLayout>
+
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/report_list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                />
+
+
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+   <LinearLayout
+       android:id="@+id/unit_linear"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_margin="8dp"
+       android:clipToPadding="true"
+       android:orientation="horizontal">
+       <EditText
+           android:layout_width="0dp"
+           android:padding="8dp"
+           android:id="@+id/new_value"
+           android:layout_height="match_parent"
+           android:layout_weight="1"
+           android:inputType="number"
+           android:hint="Enter value in kWh"
+           android:background="@drawable/edittext_style"
+          />
+       <Button
+           android:layout_marginStart="4dp"
+           android:id="@+id/add"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:background="@drawable/button_style"
+           android:textColor="@android:color/white"
+           android:text="Add"
+           />
+   </LinearLayout>
+    <LinearLayout
+        android:id="@+id/rate_linear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:visibility="gone"
+        android:clipToPadding="true"
+        android:orientation="horizontal">
+        <EditText
+            android:layout_width="0dp"
+            android:padding="8dp"
+            android:id="@+id/new_rate"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:inputType="numberDecimal"
+            android:hint="Enter value in rupees"
+            android:background="@drawable/edittext_style"
+            />
+        <Button
+            android:layout_marginStart="4dp"
+            android:id="@+id/save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_style"
+            android:textColor="@android:color/white"
+            android:text="Save"
+            />
+    </LinearLayout>
+
+
+</LinearLayout>

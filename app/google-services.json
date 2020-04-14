@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "976282750382",
+    "firebase_url": "https://electricity-bill-2020.firebaseio.com",
+    "project_id": "electricity-bill-2020",
+    "storage_bucket": "electricity-bill-2020.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:976282750382:android:d4812f5bdfe32b27bacc3f",
+        "android_client_info": {
+          "package_name": "com.eve.bill_it"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "976282750382-ipqv6c4352rl205vsn6s9eltsqca943m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.eve.bill_it",
+            "certificate_hash": "12c7bb4e632a2d0e152740f3a5e628ea3a7c52ff"
+          }
+        },
+        {
+          "client_id": "976282750382-i6ess5534phu637a5j7oc412iq8gma7o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUKaRQY-_XxmbZI3F5i6SMgit4yugS1HU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "976282750382-i6ess5534phu637a5j7oc412iq8gma7o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

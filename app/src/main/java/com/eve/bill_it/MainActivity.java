@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,9 +37,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, DatePickerDialog.OnDateSetListener {
 
     private static final String TAG = "Bill IT";
     FirebaseDatabase database;
@@ -47,12 +50,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     EditText new_value,new_rate;
     RecyclerView recyclerView;
     ReportAdapter adapter;
-    TextView month,bill_amt,energy_con;
+    TextView start_date,end_date,bill_amt,energy_con;
     LinearLayout rate_linear,unit_linear;
     ImageView loader;
-    HashMap<String,Date> dateList;
-    String currentMonthIndex;
+    String chosen_date;
     float rate=0;
+    Date startDate,endDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         add = findViewById(R.id.add);
         new_value = findViewById(R.id.new_value);
         recyclerView = findViewById(R.id.report_list);
-        month = findViewById(R.id.month);
+        start_date = findViewById(R.id.startDate);
+        end_date = findViewById(R.id.endDate);
         bill_amt = findViewById(R.id.bill_amt);
         energy_con = findViewById(R.id.energy_con);
         rate_linear = findViewById(R.id.rate_linear);
@@ -72,13 +76,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         save.setOnClickListener(this);
         bill_amt.setOnClickListener(this);
         add.setOnClickListener(this);
-        month.setOnClickListener(this);
+        start_date.setOnClickListener(this);
+        end_date.setOnClickListener(this);
         reportList = new ArrayList<>();
-        dateList = new HashMap<>();
-        @SuppressLint("SimpleDateFormat")
-        String month_year_string = new SimpleDateFormat("MMMM yyyy").format(new Date());
-        currentMonthIndex = month_year_string;
-        dateList.put(month_year_string,new Date());
+        initDate();
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -86,30 +87,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new ReportAdapter(reportList,this,recyclerView);
         recyclerView.setAdapter(adapter);
         database = FirebaseDatabase.getInstance();
+        setDateText();
         getData();
         getRate();
 
     }
 
+    void initDate(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY,23);
+        calendar.set(Calendar.MINUTE,59);
+        calendar.set(Calendar.SECOND,59);
+        calendar.set(Calendar.MILLISECOND,999);
+        endDate = calendar.getTime();
+        calendar.set(Calendar.HOUR_OF_DAY,0);
+        calendar.set(Calendar.MINUTE,0);
+        calendar.set(Calendar.SECOND,0);
+        calendar.set(Calendar.MILLISECOND,0);
+        calendar.add(Calendar.MONTH,-1);
+        startDate = calendar.getTime();
 
-    void calculate(Date c_date){
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTime(c_date);
-        int year = calendar.get(Calendar.YEAR);
-        int month_num = calendar.get(Calendar.MONTH);
+    }
+
+    void setDateText(){
         @SuppressLint("SimpleDateFormat")
-        String month_year_string = new SimpleDateFormat("MMMM yyyy").format(c_date);
-        month.setText(month_year_string);
+        String time_date_string = new SimpleDateFormat("dd MMMM yyyy").format(startDate);
+        start_date.setText(time_date_string);
+        @SuppressLint("SimpleDateFormat")
+        String time_date_string_end = new SimpleDateFormat("dd MMMM yyyy").format(endDate);
+        end_date.setText(time_date_string_end);
+    }
+
+
+    void calculate(Date start_date,Date end_date){
         List<Report> monthReportList = new ArrayList<>();
         for(Report i: reportList){
             Calendar calendar_i = new GregorianCalendar();
             Date d = i.getDate();
             calendar_i.setTime(d);
-            Log.d("year i",String.valueOf(calendar_i.get(Calendar.YEAR)));
-            Log.d("month i",String.valueOf(calendar_i.get(Calendar.MONTH)));
-            Log.d("year",String.valueOf(calendar.get(Calendar.YEAR)));
-            Log.d("month",String.valueOf(calendar.get(Calendar.MONTH)));
-            if ((calendar_i.get(Calendar.YEAR) == year && calendar_i.get(Calendar.MONTH) == month_num)){
+            if (i.getDate().after(start_date) && i.getDate().before(end_date)){
                 monthReportList.add(i);
             }else if(monthReportList.size() != 0){
                 break;
@@ -117,8 +133,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         int j = monthReportList.size();
         if (j == 0 || j == 1){
-            bill_amt.setText("NA");
-            energy_con.setText("₹ ".concat(String.valueOf(200+35.70+20)));
+            bill_amt.setText("₹ ".concat(String.valueOf(200+35.70+20)));
+            energy_con.setText("0 kWh");
         }else {
             long s_date = monthReportList.get(j-1).getDate().getTime();
             long l_date = monthReportList.get(0).getDate().getTime();
@@ -126,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             long l_value = monthReportList.get(0).getValue();
             float value_diff = (l_value-s_value);
             long time_diff =  l_date-s_date;
-            long units  = (long) ((value_diff/time_diff)*2592000000.0);
+            long units  = (long) ((value_diff/time_diff)*(end_date.getTime()-start_date.getTime()));
             Log.d("units",String.valueOf(units));
             Log.d("value diff",String.valueOf(l_value-s_value));
             Log.d("time diff",String.valueOf(l_date-s_date));
@@ -169,8 +185,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 for(DataSnapshot report: dataSnapshot.getChildren()){
                     reportList.add(0,report.getValue(Report.class));
                 }
-                calculate(dateList.get(currentMonthIndex));
-                getDateList();
+                calculate(startDate,endDate);
                 adapter.notifyDataSetChanged();
                 Log.d("Size ", String.valueOf(reportList.size()));
             }
@@ -183,15 +198,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    void getDateList(){
-        for(Report r: reportList){
-            @SuppressLint("SimpleDateFormat")
-            String month_year_string = new SimpleDateFormat("MMMM yyyy").format(r.getDate());
-            if(!dateList.containsKey(month_year_string)){
-                dateList.put(month_year_string,r.getDate());
-            }
-        }
-    }
+
 
     void getRate(){
         myRef = database.getReference("/Home/rate");
@@ -202,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // whenever data at this location is updated.
                 rate =  Float.parseFloat(dataSnapshot.getValue().toString());
                 Log.d("Rate",String.valueOf(rate));
-                calculate(dateList.get(currentMonthIndex));
+                calculate(startDate,endDate);
             }
             @Override
             public void onCancelled(DatabaseError error) {
@@ -218,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             rate = Float.parseFloat(value);
             myRef = database.getReference("/Home/rate");
             myRef.setValue(rate);
-            calculate(dateList.get(currentMonthIndex));
+            calculate(startDate,endDate);
         }
 
     }
@@ -243,21 +250,66 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 unit_linear.setVisibility(View.GONE);
                 new_rate.requestFocus();
                 break;
-            case R.id.month:
-                final String[] dates = dateList.keySet().toArray(new String[0]);
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Choose a Month");
-                builder.setItems(dates, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        currentMonthIndex = dates[which];
-                        calculate(dateList.get(currentMonthIndex));
-                    }
-                });
-                AlertDialog dialog = builder.create();
-                dialog.show();
+            case R.id.startDate:
+                chosen_date = "start";
+                showDatePicker(startDate);
+                break;
+            case R.id.endDate:
+                chosen_date = "end";
+                showDatePicker(endDate);
                 break;
 
         }
+    }
+
+    void showDatePicker(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        DatePickerDialog dialog = new DatePickerDialog(MainActivity.this, this,
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH));
+        dialog.show();
+    }
+
+    @Override
+    public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+        Calendar myCalendar = Calendar.getInstance();
+        myCalendar.set(Calendar.YEAR, year);
+        myCalendar.set(Calendar.MONTH, month);
+        myCalendar.set(Calendar.DAY_OF_MONTH, day);
+        if (chosen_date.equals("start")){
+            myCalendar.set(Calendar.HOUR_OF_DAY,0);
+            myCalendar.set(Calendar.MINUTE,0);
+            myCalendar.set(Calendar.SECOND,0);
+            myCalendar.set(Calendar.MILLISECOND,0);
+            Date date = myCalendar.getTime();
+            if(date.after(endDate)){
+                showDatePicker(startDate);
+                Toast.makeText(this,"Invalid Date Range",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            startDate = date;
+            setDateText();
+            SimpleDateFormat ft =
+                    new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+            Log.d("Start Date",ft.format(startDate));
+        }else{
+            myCalendar.set(Calendar.HOUR_OF_DAY,23);
+            myCalendar.set(Calendar.MINUTE,59);
+            myCalendar.set(Calendar.SECOND,59);
+            myCalendar.set(Calendar.MILLISECOND,999);
+            Date date = myCalendar.getTime();
+            if(date.before(startDate)){
+                showDatePicker(endDate);
+                Toast.makeText(this,"Invalid Date Range",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            endDate = date;
+            setDateText();
+            SimpleDateFormat ft =
+                    new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+            Log.d("End Date",ft.format(endDate));
+        }
+        calculate(startDate,endDate);
     }
 }

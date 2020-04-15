@@ -19,7 +19,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 app:cardCornerRadius="16dp"
-                android:layout_margin="8dp"
+                android:layout_margin="16dp"
                 app:cardElevation="2dp">
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -36,14 +36,29 @@
                         android:gravity="center"
                         android:orientation="horizontal">
                         <TextView
-                            android:id="@+id/month"
+                            android:id="@+id/startDate"
                             android:layout_width="0dp"
                             android:layout_weight="1"
-                            android:gravity="center"
-                            android:textSize="20sp"
+                            android:gravity="right"
+                            android:textSize="16sp"
                             android:layout_marginEnd="4dp"
                             android:layout_height="wrap_content"
-                            android:text=""/>
+                            android:text="21 March 2020"/>
+                        <ImageView
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:src="@drawable/ic_to_arrow"
+                            android:tint="@color/colorPrimary"/>
+                        <TextView
+                            android:id="@+id/endDate"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:gravity="left"
+                            android:textSize="16sp"
+                            android:layout_marginStart="4dp"
+                            android:layout_height="wrap_content"
+                            android:text="21 April 2020"/>
                     </LinearLayout>
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -155,6 +170,12 @@
         android:visibility="gone"
         android:clipToPadding="true"
         android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cost per Unit"
+            android:layout_marginEnd="4dp"
+            />
         <EditText
             android:layout_width="0dp"
             android:padding="8dp"

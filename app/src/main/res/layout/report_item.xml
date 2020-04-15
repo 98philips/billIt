@@ -35,7 +35,7 @@
                 android:layout_weight="1"
                 android:gravity="right"
                 android:text="200 kWh"
-
+                android:textStyle="bold"
                 />
 
         </LinearLayout>

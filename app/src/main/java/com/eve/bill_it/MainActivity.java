@@ -6,17 +6,21 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -45,6 +49,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ReportAdapter adapter;
     TextView month,bill_amt,energy_con;
     LinearLayout rate_linear,unit_linear;
+    ImageView loader;
+    HashMap<String,Date> dateList;
+    String currentMonthIndex;
     float rate=0;
 
     @Override
@@ -60,11 +67,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rate_linear = findViewById(R.id.rate_linear);
         unit_linear = findViewById(R.id.unit_linear);
         new_rate = findViewById(R.id.new_rate);
+        loader = findViewById(R.id.loader);
         save = findViewById(R.id.save);
         save.setOnClickListener(this);
         bill_amt.setOnClickListener(this);
         add.setOnClickListener(this);
+        month.setOnClickListener(this);
         reportList = new ArrayList<>();
+        dateList = new HashMap<>();
+        @SuppressLint("SimpleDateFormat")
+        String month_year_string = new SimpleDateFormat("MMMM yyyy").format(new Date());
+        currentMonthIndex = month_year_string;
+        dateList.put(month_year_string,new Date());
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -78,8 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    void calculate(){
-        Date c_date = new Date();
+    void calculate(Date c_date){
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(c_date);
         int year = calendar.get(Calendar.YEAR);
@@ -90,7 +103,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int j = -1;
         for(Report i: reportList){
             Calendar calendar_i = new GregorianCalendar();
-            calendar_i.setTime(i.getDate());
+            Date d = i.getDate();
+            calendar_i.setTime(d);
             Log.d("year i",String.valueOf(calendar_i.get(Calendar.YEAR)));
             Log.d("month i",String.valueOf(calendar_i.get(Calendar.MONTH)));
             Log.d("year",String.valueOf(calendar.get(Calendar.YEAR)));
@@ -139,17 +153,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void getData(){
         // Read from the database
+        loader.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
+        Glide.with(this).load(R.drawable.loading).into(loader);
         myRef = database.getReference("/Home/reportList");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
+                loader.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
                 reportList.clear();
                 for(DataSnapshot report: dataSnapshot.getChildren()){
                     reportList.add(0,report.getValue(Report.class));
                 }
-                calculate();
+                calculate(dateList.get(currentMonthIndex));
+                getDateList();
                 adapter.notifyDataSetChanged();
                 Log.d("Size ", String.valueOf(reportList.size()));
             }
@@ -162,6 +182,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    void getDateList(){
+        for(Report r: reportList){
+            @SuppressLint("SimpleDateFormat")
+            String month_year_string = new SimpleDateFormat("MMMM yyyy").format(r.getDate());
+            if(!dateList.containsKey(month_year_string)){
+                dateList.put(month_year_string,r.getDate());
+            }
+        }
+    }
+
     void getRate(){
         myRef = database.getReference("/Home/rate");
         myRef.addValueEventListener(new ValueEventListener() {
@@ -171,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // whenever data at this location is updated.
                 rate =  Float.parseFloat(dataSnapshot.getValue().toString());
                 Log.d("Rate",String.valueOf(rate));
-                calculate();
+                calculate(dateList.get(currentMonthIndex));
             }
             @Override
             public void onCancelled(DatabaseError error) {
@@ -185,7 +215,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String value = new_rate.getText().toString();
         if(!value.equals("")){
             rate = Float.parseFloat(value);
-            calculate();
+            myRef = database.getReference("/Home/rate");
+            myRef.setValue(rate);
+            calculate(dateList.get(currentMonthIndex));
         }
 
     }
@@ -210,7 +242,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 unit_linear.setVisibility(View.GONE);
                 new_rate.requestFocus();
                 break;
-
+            case R.id.month:
+                final String[] dates = dateList.keySet().toArray(new String[0]);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Choose a Month");
+                builder.setItems(dates, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        currentMonthIndex = dates[which];
+                        calculate(dateList.get(currentMonthIndex));
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+                break;
 
         }
     }

@@ -102,8 +102,18 @@
                 android:id="@+id/report_list"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:visibility="visible"
                 android:layout_weight="1"
                 />
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:id="@+id/loader"
+                    android:visibility="gone"
+                    android:layout_gravity="center"
+                    />
+
+
 
 
 

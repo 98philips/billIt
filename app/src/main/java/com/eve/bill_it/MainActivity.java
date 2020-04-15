@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @SuppressLint("SimpleDateFormat")
         String month_year_string = new SimpleDateFormat("MMMM yyyy").format(c_date);
         month.setText(month_year_string);
-        int j = -1;
+        List<Report> monthReportList = new ArrayList<>();
         for(Report i: reportList){
             Calendar calendar_i = new GregorianCalendar();
             Date d = i.getDate();
@@ -109,28 +109,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d("month i",String.valueOf(calendar_i.get(Calendar.MONTH)));
             Log.d("year",String.valueOf(calendar.get(Calendar.YEAR)));
             Log.d("month",String.valueOf(calendar.get(Calendar.MONTH)));
-            if (!(calendar_i.get(Calendar.YEAR) == year && calendar_i.get(Calendar.MONTH) == month_num)){
+            if ((calendar_i.get(Calendar.YEAR) == year && calendar_i.get(Calendar.MONTH) == month_num)){
+                monthReportList.add(i);
+            }else if(monthReportList.size() != 0){
                 break;
             }
-            j++;
         }
-        Log.d("j",String.valueOf(j));
-        if (j == -1){
-            bill_amt.setText("₹ 0");
-            energy_con.setText("0 kWh");
+        int j = monthReportList.size();
+        if (j == 0 || j == 1){
+            bill_amt.setText("NA");
+            energy_con.setText("₹ ".concat(String.valueOf(200+35.70+20)));
         }else {
-            long s_date = reportList.get(j).getDate().getTime();
-            long l_date = reportList.get(0).getDate().getTime();
-            long s_value = reportList.get(j).getValue();
-            long l_value = reportList.get(0).getValue();
+            long s_date = monthReportList.get(j-1).getDate().getTime();
+            long l_date = monthReportList.get(0).getDate().getTime();
+            long s_value = monthReportList.get(j-1).getValue();
+            long l_value = monthReportList.get(0).getValue();
             float value_diff = (l_value-s_value);
             long time_diff =  l_date-s_date;
             long units  = (long) ((value_diff/time_diff)*2592000000.0);
             Log.d("units",String.valueOf(units));
             Log.d("value diff",String.valueOf(l_value-s_value));
             Log.d("time diff",String.valueOf(l_date-s_date));
-            Log.d("div",String.valueOf(5.0/4596165));
-            bill_amt.setText("₹ ".concat(String.valueOf(units*rate)));
+            double rupees = units*rate+units*rate*0.1+200+35.70+20;
+            bill_amt.setText("₹ ".concat(String.format("%.2f",rupees)));
             energy_con.setText(String.valueOf(units).concat(" kWh"));
         }
     }

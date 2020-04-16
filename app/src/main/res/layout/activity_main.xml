@@ -73,9 +73,11 @@
                             android:orientation="vertical"
                             android:gravity="left">
                             <TextView
+                                android:id="@+id/bill_label"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Est. Bill Amt."
+                                android:textSize="12sp"
                                 />
                             <TextView
                                 android:id="@+id/bill_amt"
@@ -97,6 +99,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Est. Energy Con."
+                                android:textSize="12sp"
                                 />
                             <TextView
                                 android:id="@+id/energy_con"

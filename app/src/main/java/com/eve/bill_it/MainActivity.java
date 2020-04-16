@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     EditText new_value,new_rate;
     RecyclerView recyclerView;
     ReportAdapter adapter;
-    TextView start_date,end_date,bill_amt,energy_con;
+    TextView start_date,end_date,bill_amt,energy_con,bill_label;
     LinearLayout rate_linear,unit_linear;
     ImageView loader;
     String chosen_date;
@@ -81,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         energy_con = findViewById(R.id.energy_con);
         rate_linear = findViewById(R.id.rate_linear);
         unit_linear = findViewById(R.id.unit_linear);
+        bill_label  = findViewById(R.id.bill_label);
         new_rate = findViewById(R.id.new_rate);
         close = findViewById(R.id.close);
         loader = findViewById(R.id.loader);
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     void calculate(Date start_date,Date end_date){
         List<Report> monthReportList = new ArrayList<>();
         for(Report i: reportList){
-            Calendar calendar_i = new GregorianCalendar();
+            Calendar calendar_i = Calendar.getInstance();;
             Date d = i.getDate();
             calendar_i.setTime(d);
             if (i.getDate().after(start_date) && i.getDate().before(end_date)){
@@ -162,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d("time diff",String.valueOf(l_date-s_date));
             double rupees = units*rate+units*rate*0.1+200+35.70+20;
             bill_amt.setText("₹ ".concat(String.format("%.2f",rupees)));
+            bill_label.setText("Est. Bill Amt. (₹".concat(String.format("%.2f",rate).concat("/kWh)")));
             energy_con.setText(String.valueOf(units).concat(" kWh"));
         }
     }

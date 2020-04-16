@@ -1,5 +1,6 @@
 package com.eve.bill_it;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -10,19 +11,28 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -46,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     FirebaseDatabase database;
     DatabaseReference myRef;
     List<Report> reportList;
-    Button add,save;
+    ImageButton add,save,close;
     EditText new_value,new_rate;
     RecyclerView recyclerView;
     ReportAdapter adapter;
@@ -71,15 +82,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rate_linear = findViewById(R.id.rate_linear);
         unit_linear = findViewById(R.id.unit_linear);
         new_rate = findViewById(R.id.new_rate);
+        close = findViewById(R.id.close);
         loader = findViewById(R.id.loader);
         save = findViewById(R.id.save);
         save.setOnClickListener(this);
-        bill_amt.setOnClickListener(this);
         add.setOnClickListener(this);
+        close.setOnClickListener(this);
         start_date.setOnClickListener(this);
         end_date.setOnClickListener(this);
         reportList = new ArrayList<>();
         initDate();
+        rate_linear.setVisibility(View.GONE);
+        unit_linear.setVisibility(View.VISIBLE);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -111,10 +125,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void setDateText(){
         @SuppressLint("SimpleDateFormat")
-        String time_date_string = new SimpleDateFormat("dd MMMM yyyy").format(startDate);
+        String time_date_string = new SimpleDateFormat("dd MMM yyyy").format(startDate);
         start_date.setText(time_date_string);
         @SuppressLint("SimpleDateFormat")
-        String time_date_string_end = new SimpleDateFormat("dd MMMM yyyy").format(endDate);
+        String time_date_string_end = new SimpleDateFormat("dd MMM yyyy").format(endDate);
         end_date.setText(time_date_string_end);
     }
 
@@ -156,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String value = new_value.getText().toString();
         if(!value.equals("")){
             reportList.add(new Report(new Date(),Long.parseLong(value)));
+            Collections.sort(reportList,new TimeCompare());
             myRef = database.getReference("/Home/reportList");
             myRef.setValue(reportList);
             new_value.setText("");
@@ -183,8 +198,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 recyclerView.setVisibility(View.VISIBLE);
                 reportList.clear();
                 for(DataSnapshot report: dataSnapshot.getChildren()){
-                    reportList.add(0,report.getValue(Report.class));
+                    reportList.add(report.getValue(Report.class));
                 }
+                Collections.sort(reportList,new TimeCompare());
                 calculate(startDate,endDate);
                 adapter.notifyDataSetChanged();
                 Log.d("Size ", String.valueOf(reportList.size()));
@@ -232,6 +248,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         switch (view.getId()){
             case R.id.add:
                 sendData();
@@ -241,14 +258,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 rate_linear.setVisibility(View.GONE);
                 unit_linear.setVisibility(View.VISIBLE);
                 new_rate.clearFocus();
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(new_rate.getWindowToken(), 0);
-                break;
-            case R.id.bill_amt:
-                new_rate.setText(String.valueOf(rate));
-                rate_linear.setVisibility(View.VISIBLE);
-                unit_linear.setVisibility(View.GONE);
-                new_rate.requestFocus();
                 break;
             case R.id.startDate:
                 chosen_date = "start";
@@ -258,6 +268,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 chosen_date = "end";
                 showDatePicker(endDate);
                 break;
+            case R.id.close:
+                new_rate.clearFocus();
+                rate_linear.setVisibility(View.GONE);
+                unit_linear.setVisibility(View.VISIBLE);
+                imm.hideSoftInputFromWindow(new_rate.getWindowToken(), 0);
 
         }
     }
@@ -290,9 +305,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             startDate = date;
             setDateText();
-            SimpleDateFormat ft =
-                    new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-            Log.d("Start Date",ft.format(startDate));
         }else{
             myCalendar.set(Calendar.HOUR_OF_DAY,23);
             myCalendar.set(Calendar.MINUTE,59);
@@ -306,10 +318,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             endDate = date;
             setDateText();
-            SimpleDateFormat ft =
-                    new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-            Log.d("End Date",ft.format(endDate));
         }
         calculate(startDate,endDate);
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_list, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.cost_per_unit:
+                new_rate.setText(String.valueOf(rate));
+                rate_linear.setVisibility(View.VISIBLE);
+                unit_linear.setVisibility(View.GONE);
+                new_rate.requestFocus();
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(new_rate,0);
+                break;
+            case R.id.logout:
+                AuthUI.getInstance()
+                        .signOut(this)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            public void onComplete(@NonNull Task<Void> task) {
+                                // user is now signed out
+                                startActivity(new Intent(MainActivity.this, Login.class));
+                                finish();
+                            }
+                        });
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }

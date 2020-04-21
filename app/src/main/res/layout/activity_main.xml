@@ -133,11 +133,12 @@
                 android:clipToPadding="false"
                 android:paddingBottom="60dp"
                 />
-                <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                <ProgressBar
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
                     android:id="@+id/loader"
-                    android:visibility="gone"
+                    android:padding = "5dp"
+                    android:visibility="visible"
                     android:layout_gravity="center"
                     />
 

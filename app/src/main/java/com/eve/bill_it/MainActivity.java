@@ -30,6 +30,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ReportAdapter adapter;
     TextView start_date,end_date,bill_amt,energy_con,bill_label;
     LinearLayout rate_linear,unit_linear;
-    ImageView loader;
+    ProgressBar loader;
     String chosen_date;
     float rate=0;
     Date startDate,endDate;
@@ -229,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Read from the database
         loader.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
-        Glide.with(this).load(R.drawable.loading).into(loader);
         myRef = database.getReference("/Home/reportList");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override

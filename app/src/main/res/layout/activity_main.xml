@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
 
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1">
+    >
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -132,6 +130,8 @@
                 android:layout_height="0dp"
                 android:visibility="visible"
                 android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingBottom="60dp"
                 />
                 <ImageView
                     android:layout_width="100dp"
@@ -148,83 +148,3 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
-   <LinearLayout
-       android:id="@+id/unit_linear"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_margin="8dp"
-       android:clipToPadding="true"
-       android:orientation="horizontal">
-       <EditText
-           android:layout_width="0dp"
-           android:paddingTop="8dp"
-           android:paddingBottom="8dp"
-           android:paddingStart="16dp"
-           android:paddingEnd="16dp"
-           android:id="@+id/new_value"
-           android:layout_height="match_parent"
-           android:layout_weight="1"
-           android:inputType="number"
-           android:hint="Enter value in kWh"
-           android:background="@drawable/edittext_style"
-          />
-       <ImageButton
-           android:layout_marginStart="4dp"
-           android:id="@+id/add"
-           android:layout_width="45dp"
-           android:layout_height="45dp"
-           android:background="@drawable/button_style"
-           android:src="@drawable/ic_publish_24px"
-           android:tint="@android:color/white"/>
-   </LinearLayout>
-    <LinearLayout
-        android:id="@+id/rate_linear"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:visibility="visible"
-        android:clipToPadding="true"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cost per Unit"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="4dp"
-            />
-        <EditText
-            android:layout_width="0dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:id="@+id/new_rate"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:focusableInTouchMode="true"
-            android:inputType="numberDecimal"
-            android:hint="Enter value in rupees"
-            android:background="@drawable/edittext_style"
-            />
-        <ImageButton
-            android:layout_marginStart="4dp"
-            android:id="@+id/close"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="@drawable/close_button_style"
-            android:tint="@color/colorPrimary"
-            android:src="@drawable/ic_close_24px"
-            />
-        <ImageButton
-            android:layout_marginStart="8dp"
-            android:id="@+id/save"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="@drawable/button_style"
-            android:tint="@android:color/white"
-            android:src="@drawable/ic_save_24px"
-            />
-    </LinearLayout>
-
-
-</LinearLayout>

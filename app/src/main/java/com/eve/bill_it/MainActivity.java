@@ -2,6 +2,7 @@ package com.eve.bill_it;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -12,12 +13,16 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -27,6 +32,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.auth.AuthUI;
@@ -38,6 +44,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.collection.LLRBNode;
 
 import java.text.SimpleDateFormat;
 import java.time.YearMonth;
@@ -70,7 +77,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main_content);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        setStatusBar();
         add = findViewById(R.id.add);
         new_value = findViewById(R.id.new_value);
         recyclerView = findViewById(R.id.report_list);
@@ -104,7 +114,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setDateText();
         getData();
         getRate();
+        getTestData();
+    }
 
+    void setStatusBar(){
+        switch (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+            case Configuration.UI_MODE_NIGHT_YES:
+                setLightStatusBar(this);
+                break;
+            case Configuration.UI_MODE_NIGHT_NO:
+                clearLightStatusBar(MainActivity.this);
+                break;
+        }
+    }
+
+    private void setLightStatusBar(Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            int flags = activity.getWindow().getDecorView().getSystemUiVisibility(); // get current flag
+//            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;   // add LIGHT_STATUS_BAR to flag
+//            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
+//            activity.getWindow().setStatusBarColor(Color.WHITE); // optional
+            activity.getWindow().setStatusBarColor(getColor(R.color.bg));
+        }
+    }
+
+    private void clearLightStatusBar(Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int flags = activity.getWindow().getDecorView().getSystemUiVisibility(); // get current flag
+            flags = flags ^ View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR; // use XOR here for remove LIGHT_STATUS_BAR from flags
+            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
+            activity.getWindow().setStatusBarColor(getColor(R.color.white));
+//            activity.getWindow().setStatusBarColor(getColor(R.color.bg)); // optional
+        }
     }
 
     void initDate(){
@@ -209,7 +250,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onCancelled(DatabaseError error) {
                 // Failed to read value
+                loader.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                Toast.makeText(MainActivity.this,"Something Went Wrong",Toast.LENGTH_SHORT).show();
                 Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
+
+    }
+
+    void getTestData(){
+        // Read from the database
+        myRef = database.getReference("/recordList/");
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                Log.d("data ", dataSnapshot.toString());
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read test value.", error.toException());
             }
         });
 

@@ -5,6 +5,7 @@ import java.util.Date;
 public class Report {
     Date date;
     long value;
+    String key;
 
     Report(){}
 

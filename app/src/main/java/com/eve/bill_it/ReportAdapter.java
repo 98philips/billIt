@@ -46,7 +46,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder h, final int position) {
-        Report report = reportList.get(position);
+        final Report report = reportList.get(position);
         @SuppressLint("SimpleDateFormat")
         String time_date_string = new SimpleDateFormat("HH:mm, dd MMMM yyyy").format(report.getDate());
         h.time_date.setText(time_date_string);
@@ -70,11 +70,11 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
         h.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference myRef = database.getReference("/recordList/Home/reportList");
+                myRef.child(report.key).removeValue();
                 reportList.remove(position);
                 notifyItemRemoved(position);
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference myRef = database.getReference("/Home/reportList");
-                myRef.setValue(reportList);
                 h.extra_details.setVisibility(View.GONE);
             }
         });

@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 
@@ -212,10 +213,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     void sendData(){
         String value = new_value.getText().toString();
         if(!value.equals("")){
-            reportList.add(new Report(new Date(),Long.parseLong(value)));
+            Report r = new Report(new Date(),Long.parseLong(value));
+            reportList.add(r);
             Collections.sort(reportList,new TimeCompare());
-            myRef = database.getReference("/Home/reportList");
-            myRef.setValue(reportList);
+            myRef = database.getReference("/recordList/Home/reportList");
+            myRef.push().setValue(r);
             new_value.setText("");
             new_value.clearFocus();
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -230,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Read from the database
         loader.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
-        myRef = database.getReference("/Home/reportList");
+        myRef = database.getReference("/recordList/Home/reportList");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -240,12 +242,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 recyclerView.setVisibility(View.VISIBLE);
                 reportList.clear();
                 for(DataSnapshot report: dataSnapshot.getChildren()){
-                    reportList.add(report.getValue(Report.class));
+                    Report r = report.getValue(Report.class);
+                    if (r != null) {
+                        r.key = report.getKey();
+                    }
+                    reportList.add(r);
                 }
                 Collections.sort(reportList,new TimeCompare());
                 calculate(startDate,endDate);
                 adapter.notifyDataSetChanged();
                 Log.d("Size ", String.valueOf(reportList.size()));
+//                transferData();
             }
             @Override
             public void onCancelled(DatabaseError error) {
@@ -258,6 +265,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+
+//    void transferData(){
+//        myRef = database.getReference("/recordList/Home/reportList");
+//        for(Report r: reportList){
+//            myRef.push().setValue(r);
+//        }
+//
+//    }
 
     void getTestData(){
         // Read from the database
@@ -281,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     void getRate(){
-        myRef = database.getReference("/Home/rate");
+        myRef = database.getReference("/recordList/Home/rate");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -303,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String value = new_rate.getText().toString();
         if(!value.equals("")){
             rate = Float.parseFloat(value);
-            myRef = database.getReference("/Home/rate");
+            myRef = database.getReference("/recordList/Home/rate");
             myRef.setValue(rate);
             calculate(startDate,endDate);
         }

@@ -65,16 +65,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     FirebaseDatabase database;
     DatabaseReference myRef;
     List<Report> reportList;
+    List<Report> recyclerList;
     ImageButton add,save,close;
     EditText new_value,new_rate;
     RecyclerView recyclerView;
     ReportAdapter adapter;
-    TextView start_date,end_date,bill_amt,energy_con,bill_label;
+    TextView start_date,end_date,bill_amt,energy_con,bill_label,show_more;
     LinearLayout rate_linear,unit_linear;
     ProgressBar loader;
     String chosen_date;
     float rate=0;
     Date startDate,endDate;
+    int item_count = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,16 +95,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rate_linear = findViewById(R.id.rate_linear);
         unit_linear = findViewById(R.id.unit_linear);
         bill_label  = findViewById(R.id.bill_label);
+        show_more = findViewById(R.id.show_more);
         new_rate = findViewById(R.id.new_rate);
         close = findViewById(R.id.close);
         loader = findViewById(R.id.loader);
         save = findViewById(R.id.save);
         save.setOnClickListener(this);
+        show_more.setOnClickListener(this);
         add.setOnClickListener(this);
         close.setOnClickListener(this);
         start_date.setOnClickListener(this);
         end_date.setOnClickListener(this);
         reportList = new ArrayList<>();
+        recyclerList = new ArrayList<>();
         initDate();
         rate_linear.setVisibility(View.GONE);
         unit_linear.setVisibility(View.VISIBLE);
@@ -110,13 +115,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
-        adapter = new ReportAdapter(reportList,this,recyclerView);
+        adapter = new ReportAdapter(recyclerList,this,recyclerView);
         recyclerView.setAdapter(adapter);
         database = FirebaseDatabase.getInstance();
         setDateText();
         getData();
         getRate();
-        getTestData();
+        //getTestData();
     }
 
     void setStatusBar(){
@@ -232,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Read from the database
         loader.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
+        show_more.setVisibility(View.GONE);
         myRef = database.getReference("/recordList/Home/reportList");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -248,11 +254,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     reportList.add(r);
                 }
+                if(reportList.size()>10){
+                    show_more.setVisibility(View.VISIBLE);
+                }
                 Collections.sort(reportList,new TimeCompare());
                 calculate(startDate,endDate);
-                adapter.notifyDataSetChanged();
                 Log.d("Size ", String.valueOf(reportList.size()));
 //                transferData();
+                populate_data();
             }
             @Override
             public void onCancelled(DatabaseError error) {
@@ -265,6 +274,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+
+    private void populate_data() {
+        recyclerList.clear();
+        recyclerList.addAll(reportList.subList(0, item_count));
+        adapter.notifyDataSetChanged();
+    }
+
 
 //    void transferData(){
 //        myRef = database.getReference("/recordList/Home/reportList");
@@ -352,6 +368,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 rate_linear.setVisibility(View.GONE);
                 unit_linear.setVisibility(View.VISIBLE);
                 imm.hideSoftInputFromWindow(new_rate.getWindowToken(), 0);
+                break;
+            case R.id.show_more:
+                if(show_more.getText().toString().equals("show all")){
+                    show_more.setText("show less");
+                    item_count = reportList.size();
+                    populate_data();
+                }else{
+                    show_more.setText("show all");
+                    item_count = 10;
+                    populate_data();
+                }
 
         }
     }

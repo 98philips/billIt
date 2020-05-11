@@ -131,7 +131,7 @@
                 android:visibility="visible"
                 android:layout_weight="1"
                 android:clipToPadding="false"
-                android:paddingBottom="60dp"
+                android:paddingBottom="16dp"
                 />
                 <ProgressBar
                     android:layout_width="50dp"
@@ -141,6 +141,17 @@
                     android:visibility="visible"
                     android:layout_gravity="center"
                     />
+            <TextView
+                android:id="@+id/show_more"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="show all"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="60dp"
+                android:textColor="@color/colorPrimary"/>
 
 
 

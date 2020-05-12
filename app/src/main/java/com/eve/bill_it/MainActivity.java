@@ -56,6 +56,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 
 
@@ -66,10 +67,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     DatabaseReference myRef;
     List<Report> reportList;
     List<Report> recyclerList;
+    Map<String,Float> rateMap;
     ImageButton add,save,close;
     EditText new_value,new_rate;
     RecyclerView recyclerView;
     ReportAdapter adapter;
+    ImageView rate_info;
     TextView start_date,end_date,bill_amt,energy_con,bill_label,show_more;
     LinearLayout rate_linear,unit_linear;
     ProgressBar loader;
@@ -96,10 +99,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         unit_linear = findViewById(R.id.unit_linear);
         bill_label  = findViewById(R.id.bill_label);
         show_more = findViewById(R.id.show_more);
+        rate_info = findViewById(R.id.price_info);
         new_rate = findViewById(R.id.new_rate);
         close = findViewById(R.id.close);
         loader = findViewById(R.id.loader);
         save = findViewById(R.id.save);
+        rate_info.setOnClickListener(this);
         save.setOnClickListener(this);
         show_more.setOnClickListener(this);
         add.setOnClickListener(this);
@@ -108,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         end_date.setOnClickListener(this);
         reportList = new ArrayList<>();
         recyclerList = new ArrayList<>();
+        rateMap = new HashMap<>();
         initDate();
         rate_linear.setVisibility(View.GONE);
         unit_linear.setVisibility(View.VISIBLE);
@@ -119,8 +125,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView.setAdapter(adapter);
         database = FirebaseDatabase.getInstance();
         setDateText();
-        getData();
         getRate();
+
         //getTestData();
     }
 
@@ -166,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         calendar.set(Calendar.MINUTE,0);
         calendar.set(Calendar.SECOND,0);
         calendar.set(Calendar.MILLISECOND,0);
-        calendar.add(Calendar.MONTH,-1);
+        calendar.add(Calendar.MONTH,-2);
         startDate = calendar.getTime();
 
     }
@@ -208,11 +214,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d("units",String.valueOf(units));
             Log.d("value diff",String.valueOf(l_value-s_value));
             Log.d("time diff",String.valueOf(l_date-s_date));
-            double rupees = units*rate+units*rate*0.1+200+35.70+20;
+            double rupees = getPrice(units);
             bill_amt.setText("₹ ".concat(String.format("%.2f",rupees)));
-            bill_label.setText("Est. Bill Amt. (₹".concat(String.format("%.2f",rate).concat("/kWh)")));
+            bill_label.setText("Est. Bill Amt.");
             energy_con.setText(String.valueOf(units).concat(" kWh"));
         }
+    }
+
+    double getPrice(long units){
+        double amt = 0;
+        if(units<=100){
+            amt = units*rateMap.get("100");
+        }else if(units<=200){
+            amt = 100*rateMap.get("100") + (rateMap.get("200")*units-100);
+        }else if(units<=300){
+            amt = 100*rateMap.get("100") + rateMap.get("200")*100 + (rateMap.get("300")*(units-200));
+        }else if(units<=400){
+            amt = 100*rateMap.get("100") + rateMap.get("200")*100 + rateMap.get("300")*100 + (rateMap.get("400")*(units-300));
+        }else if(units<=500){
+            amt = 100*rateMap.get("100") + rateMap.get("200")*100 + rateMap.get("300")*100 + rateMap.get("400")*100 + (rateMap.get("500")*(units-400));
+        }else if(units<=600){
+            amt = rateMap.get("600") * units;
+        }else{
+            amt = rateMap.get("else") * units;
+        }
+        return amt+amt*0.1+200+35.70+0.1*units;
     }
 
     void sendData(){
@@ -318,7 +344,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
-                rate =  Float.parseFloat(dataSnapshot.getValue().toString());
+                for(DataSnapshot rate: dataSnapshot.getChildren()){
+                    float value =  Float.parseFloat(Objects.requireNonNull(rate.getValue()).toString());
+                    String key = rate.getKey();
+                    rateMap.put(key,value);
+                    Log.d("Key",key);
+                }
+                getData();
                 Log.d("Rate",String.valueOf(rate));
                 calculate(startDate,endDate);
             }
@@ -379,6 +411,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     item_count = 10;
                     populate_data();
                 }
+                break;
+            case R.id.price_info:
+                String message="";
+                for(String s: rateMap.keySet()){
+                    String line = "";
+                    if(s.equals("600")){
+                        line = "up to ".concat(s.concat(" : ₹")).concat(String.valueOf(rateMap.get(s))).concat("/unit\n");
+                    }else if(s.equals("else")){
+                        line = "above 600 : ₹".concat(String.valueOf(rateMap.get(s))).concat("/unit\n");
+                    }else if(s.equals("100")){
+                        line = "up to ".concat(s.concat(" : ₹")).concat(String.valueOf(rateMap.get(s))).concat("/unit\n");
+                    }
+                    else{
+                        line = "up to ".concat(s.concat(" : ₹")).concat(String.valueOf(rateMap.get(s))).concat(" split by 100 units\n");
+                    }
+                    message = message.concat(line);
+                }
+                message = message.concat("\nAdditional Charges:\n\n10% Duty\n₹200 Fixed Charge\n₹35.7 Meter rent\n10 paise per unit Fuel surcharge");
+                new AlertDialog.Builder(this)
+                        .setTitle("Rate Info")
+                        .setMessage(message)
+                        .show();
+                break;
 
         }
     }
@@ -438,14 +493,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.cost_per_unit:
-                new_rate.setText(String.valueOf(rate));
-                rate_linear.setVisibility(View.VISIBLE);
-                unit_linear.setVisibility(View.GONE);
-                new_rate.requestFocus();
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(new_rate,0);
-                break;
+//            case R.id.cost_per_unit:
+//                new_rate.setText(String.valueOf(rate));
+//                rate_linear.setVisibility(View.VISIBLE);
+//                unit_linear.setVisibility(View.GONE);
+//                new_rate.requestFocus();
+//                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+//                imm.showSoftInput(new_rate,0);
+//                break;
             case R.id.logout:
                 AuthUI.getInstance()
                         .signOut(this)

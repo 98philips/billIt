@@ -262,16 +262,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     void getData(){
         // Read from the database
         loader.setVisibility(View.VISIBLE);
-        recyclerView.setVisibility(View.GONE);
-        show_more.setVisibility(View.GONE);
+        //recyclerView.setVisibility(View.GONE);
+        //show_more.setVisibility(View.GONE);
         myRef = database.getReference("/recordList/Home/reportList");
+        myRef.keepSynced(true);
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
                 loader.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
+                //recyclerView.setVisibility(View.VISIBLE);
                 reportList.clear();
                 for(DataSnapshot report: dataSnapshot.getChildren()){
                     Report r = report.getValue(Report.class);
@@ -293,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onCancelled(DatabaseError error) {
                 // Failed to read value
                 loader.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
+                //recyclerView.setVisibility(View.VISIBLE);
                 Toast.makeText(MainActivity.this,"Something Went Wrong",Toast.LENGTH_SHORT).show();
                 Log.w(TAG, "Failed to read value.", error.toException());
             }

@@ -48,12 +48,16 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     public void onBindViewHolder(@NonNull final ViewHolder h, final int position) {
         final Report report = reportList.get(position);
         @SuppressLint("SimpleDateFormat")
-        String time_date_string = new SimpleDateFormat("HH:mm, dd MMMM yyyy").format(report.getDate());
-        h.time_date.setText(time_date_string);
-        String unit = String.valueOf(report.getValue()).concat(" kWh");
+        String month_year_string = new SimpleDateFormat("EEEE \nMMMM yyyy").format(report.getDate());
+        @SuppressLint("SimpleDateFormat") String date_string = new SimpleDateFormat("dd").format(report.getDate());
+        @SuppressLint("SimpleDateFormat") String time_string = new SimpleDateFormat("HH:mm").format(report.getDate());
+        h.date.setText(date_string);
+        h.time.setText(time_string);
+        h.month_year.setText(month_year_string);
+        String unit = String.valueOf(report.getValue()).concat("\nkWh");
         h.unit_value.setText(unit);
         @SuppressLint("SimpleDateFormat")
-        String day_String =  new SimpleDateFormat("E").format(report.getDate());
+        String day_String =  new SimpleDateFormat("EEEE").format(report.getDate());
         h.day.setText(day_String);
         h.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,16 +101,17 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
-        private CardView cardView;
-        private TextView time_date,unit_value,day;
+        private TextView month_year,unit_value,day,date,time;
         private ImageView delete;
-        private LinearLayout extra_details;
+        private LinearLayout extra_details,cardView;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.card_tile);
-            time_date = itemView.findViewById(R.id.time_date);
+            month_year = itemView.findViewById(R.id.month_year);
             unit_value = itemView.findViewById(R.id.unit_value);
             delete = itemView.findViewById(R.id.delete);
+            date = itemView.findViewById(R.id.date);
+            time = itemView.findViewById(R.id.time);
             day = itemView.findViewById(R.id.day_text);
             extra_details = itemView.findViewById(R.id.extra_details);
 

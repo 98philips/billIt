@@ -1,32 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
+
+<LinearLayout android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/card_tile"
-    android:layout_marginTop="4dp"
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp"
-    android:layout_marginBottom="4dp"
-    android:elevation="2dp"
-    app:cardCornerRadius="8dp">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp"
-        android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:id="@+id/card_tile"
+    xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="16dp"
+                    android:gravity="center"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="16dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/date"
+                        android:layout_gravity="center_horizontal"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="15"/>
+                    <TextView
+                        android:id="@+id/time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="16:30"/>
+
+                </LinearLayout>
             <TextView
-                android:id="@+id/time_date"
+                android:id="@+id/month_year"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:gravity="left"
-                android:text="4:30 AM  14 April 2020"
+                android:text="Monday\nJune 2020"
                 />
             <TextView
                 android:id="@+id/unit_value"
@@ -34,7 +52,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="right"
-                android:text="200 kWh"
+                android:text="2000\nkWh"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 />
 
@@ -65,5 +84,3 @@
 
         </LinearLayout>
     </LinearLayout>
-
-</androidx.cardview.widget.CardView>

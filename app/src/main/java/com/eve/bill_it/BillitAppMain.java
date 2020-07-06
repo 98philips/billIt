@@ -6,6 +6,8 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class BillitAppMain  extends Application {
 
+    public boolean isMultiMode = false;
+
     @Override
     public void onCreate() {
         super.onCreate();

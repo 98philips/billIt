@@ -2,6 +2,7 @@ package com.eve.bill_it;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,6 +18,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -60,22 +62,24 @@ import java.util.Objects;
 import java.util.TimeZone;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, DatePickerDialog.OnDateSetListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, DatePickerDialog.OnDateSetListener, MultiModeListener {
 
     private static final String TAG = "Bill IT";
     FirebaseDatabase database;
     DatabaseReference myRef;
     List<Report> reportList;
     List<Report> recyclerList;
+    List<SelectedItem> selectedItemList;
     Map<String,Float> rateMap;
     ImageButton add,save,close;
     EditText new_value,new_rate;
     RecyclerView recyclerView;
     ReportAdapter adapter;
-    ImageView rate_info;
-    TextView start_date,end_date,bill_amt,energy_con,bill_label,show_more;
+    ImageView rate_info,delete_multi,cancel_multi;
+    TextView start_date,end_date,bill_amt,energy_con,bill_label,show_more,number_multi;
     LinearLayout rate_linear,unit_linear;
     ProgressBar loader;
+    CardView multi_tab;
     String chosen_date;
     float rate=0;
     Date startDate,endDate;
@@ -101,6 +105,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         show_more = findViewById(R.id.show_more);
         rate_info = findViewById(R.id.price_info);
         new_rate = findViewById(R.id.new_rate);
+        multi_tab = findViewById(R.id.multi_select_tab);
+        delete_multi = findViewById(R.id.delete_multi);
+        cancel_multi = findViewById(R.id.cancel_multi);
+        number_multi = findViewById(R.id.number_multi);
         close = findViewById(R.id.close);
         loader = findViewById(R.id.loader);
         save = findViewById(R.id.save);
@@ -110,9 +118,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         add.setOnClickListener(this);
         close.setOnClickListener(this);
         start_date.setOnClickListener(this);
+        delete_multi.setOnClickListener(this);
+        cancel_multi.setOnClickListener(this);
         end_date.setOnClickListener(this);
         reportList = new ArrayList<>();
         recyclerList = new ArrayList<>();
+        selectedItemList = new ArrayList<>();
         rateMap = new HashMap<>();
         initDate();
         rate_linear.setVisibility(View.GONE);
@@ -124,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new ReportAdapter(recyclerList,this,recyclerView);
         recyclerView.setAdapter(adapter);
         database = FirebaseDatabase.getInstance();
+        adapter.addMultiModeListener(this);
         setDateText();
         getRate();
 
@@ -406,12 +418,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(show_more.getText().toString().equals("show all")){
                     show_more.setText("show less");
                     item_count = reportList.size();
-                    populate_data();
                 }else{
                     show_more.setText("show all");
                     item_count = 10;
-                    populate_data();
                 }
+                populate_data();
                 break;
             case R.id.price_info:
                 String message="";
@@ -435,8 +446,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .setMessage(message)
                         .show();
                 break;
+            case R.id.cancel_multi:
+                onSetMultiMode(false);
+                break;
+            case R.id.delete_multi:
+                multi_delete();
+                break;
 
         }
+    }
+
+    private void multi_delete() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("/recordList/Home/reportList");
+        for (SelectedItem selectedItem:
+             selectedItemList) {
+            if(selectedItem.key.equals(reportList.get(selectedItem.pos).key)){
+                myRef.child(selectedItem.key).removeValue();
+                reportList.remove(selectedItem.pos);
+                adapter.notifyItemRemoved(selectedItem.pos);
+                TransitionManager.beginDelayedTransition(recyclerView);
+            }
+
+        }
+        selectedItemList.clear();
+        onSetMultiMode(false);
     }
 
     void showDatePicker(Date date){
@@ -466,7 +500,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
             startDate = date;
-            setDateText();
         }else{
             myCalendar.set(Calendar.HOUR_OF_DAY,23);
             myCalendar.set(Calendar.MINUTE,59);
@@ -479,8 +512,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
             endDate = date;
-            setDateText();
         }
+        setDateText();
         calculate(startDate,endDate);
     }
 
@@ -517,4 +550,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onSetMultiMode(boolean b) {
+        adapter.setIsMultiMode(b);
+        if(b){
+            unit_linear.setVisibility(View.GONE);
+            multi_tab.setVisibility(View.VISIBLE);
+        }else{
+            unit_linear.setVisibility(View.VISIBLE);
+            multi_tab.setVisibility(View.GONE);
+            if(!selectedItemList.isEmpty()){
+                for (SelectedItem i:
+                        selectedItemList) {
+                    reportList.get(i.pos).setSelected(false);
+                }
+                adapter.notifyDataSetChanged();
+                selectedItemList.clear();
+            }
+        }
+    }
+
+    @Override
+    public void onAddItem(int pos, String key) {
+        Report report = reportList.get(pos);
+        if(report.key.equals(key)){
+            selectedItemList.add(new SelectedItem(pos,key));
+            report.setSelected(true);
+            adapter.notifyItemChanged(pos);
+            number_multi.setText(String.valueOf(selectedItemList.size()));
+        }
+    }
+
+    @Override
+    public void onRemoveItem(int pos, String key) {
+        Report report = reportList.get(pos);
+        if(report.key.equals(key)){
+            report.setSelected(false);
+            for (SelectedItem i: selectedItemList) {
+                if(i.key.equals(key)){
+                    selectedItemList.remove(i);
+                    break;
+                }
+            }
+            adapter.notifyItemChanged(pos);
+            if(selectedItemList.isEmpty()){
+                onSetMultiMode(false);
+            }
+            number_multi.setText(String.valueOf(selectedItemList.size()));
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.eve.bill_it;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.view.View.GONE;
@@ -29,12 +31,15 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     List<Report> reportList;
     Context context;
     RecyclerView recyclerView;
+    List<MultiModeListener> multiModeListeners;
+    boolean isMultiMode = false;
 
     public ReportAdapter(List<Report> reportList,Context context, RecyclerView recyclerView){
         this.reportList = reportList;
         this.context = context;
         this.recyclerView  = recyclerView;
         Log.d("Size Adapter ", String.valueOf(this.reportList.size()));
+        multiModeListeners = new ArrayList<>();
     }
 
     @NonNull
@@ -42,6 +47,33 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.report_item, parent, false);
         return new ViewHolder(v);
+    }
+
+    void addMultiModeListener(MultiModeListener multiModeListener){
+        multiModeListeners.add(multiModeListener);
+    }
+
+    void setMultiMode(int pos, String key){
+        for (MultiModeListener i: multiModeListeners) {
+            i.onSetMultiMode(true);
+            i.onAddItem(pos,key);
+        }
+    }
+
+    void addMultiItem(int pos, String key){
+        for (MultiModeListener i: multiModeListeners) {
+            i.onAddItem(pos,key);
+        }
+    }
+
+    void removeMultiItem(int pos, String key){
+        for (MultiModeListener i: multiModeListeners) {
+            i.onRemoveItem(pos,key);
+        }
+    }
+
+    public void setIsMultiMode(boolean multiMode) {
+        isMultiMode = multiMode;
     }
 
     @Override
@@ -56,19 +88,37 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
         h.month_year.setText(month_year_string);
         String unit = String.valueOf(report.getValue()).concat("\nkWh");
         h.unit_value.setText(unit);
+        if(report.isSelected()){
+            h.cardView.setBackground(context.getResources().getDrawable(R.drawable.selected_bg));
+        }else{
+            h.cardView.setBackground(context.getResources().getDrawable(R.drawable.transparent_bg));
+        }
         @SuppressLint("SimpleDateFormat")
         String day_String =  new SimpleDateFormat("EEEE").format(report.getDate());
         h.day.setText(day_String);
         h.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(h.extra_details.getVisibility() == View.GONE) {
-                    h.extra_details.setVisibility(View.VISIBLE);
-                } else{
-                    h.extra_details.setVisibility(View.GONE);
+                if(isMultiMode) {
+                    if (report.isSelected()) {
+                        removeMultiItem(position, report.key);
+                    } else {
+                        addMultiItem(position,report.key);
+                    }
                 }
-                recyclerView.smoothScrollToPosition(position);
                 TransitionManager.beginDelayedTransition(recyclerView);
+            }
+        });
+        h.cardView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if(isMultiMode){
+                    addMultiItem(position,report.key);
+                }else{
+                    setMultiMode(position,report.key);
+                }
+
+                return true;
             }
         });
         h.delete.setOnClickListener(new View.OnClickListener() {
@@ -100,7 +150,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
         return super.getItemViewType(position);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public static class ViewHolder extends RecyclerView.ViewHolder{
         private TextView month_year,unit_value,day,date,time;
         private ImageView delete;
         private LinearLayout extra_details,cardView;

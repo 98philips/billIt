@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.main_content);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setStatusBar();
+        ThemePicker.setStatusBar(MainActivity.this);
         add = findViewById(R.id.add);
         new_value = findViewById(R.id.new_value);
         recyclerView = findViewById(R.id.report_list);
@@ -140,37 +140,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getRate();
 
         //getTestData();
-    }
-
-    void setStatusBar(){
-        switch (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
-            case Configuration.UI_MODE_NIGHT_YES:
-                setLightStatusBar(this);
-                break;
-            case Configuration.UI_MODE_NIGHT_NO:
-                clearLightStatusBar(MainActivity.this);
-                break;
-        }
-    }
-
-    private void setLightStatusBar(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            int flags = activity.getWindow().getDecorView().getSystemUiVisibility(); // get current flag
-//            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;   // add LIGHT_STATUS_BAR to flag
-//            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
-//            activity.getWindow().setStatusBarColor(Color.WHITE); // optional
-            activity.getWindow().setStatusBarColor(getColor(R.color.bg));
-        }
-    }
-
-    private void clearLightStatusBar(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int flags = activity.getWindow().getDecorView().getSystemUiVisibility(); // get current flag
-            flags = flags ^ View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR; // use XOR here for remove LIGHT_STATUS_BAR from flags
-            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
-            activity.getWindow().setStatusBarColor(getColor(R.color.white));
-//            activity.getWindow().setStatusBarColor(getColor(R.color.bg)); // optional
-        }
     }
 
     void initDate(){

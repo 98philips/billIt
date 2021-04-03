@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         int j = monthReportList.size();
         if (j == 0 || j == 1){
-            bill_amt.setText("₹ ".concat(String.valueOf(200+35.70+20)));
+            bill_amt.setText("₹ ".concat(String.valueOf(220+35.70+20)));
             energy_con.setText("0 kWh");
         }else {
             long s_date = monthReportList.get(j-1).getDate().getTime();
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }else{
             amt = rateMap.get("else") * units;
         }
-        return amt+amt*0.1+200+35.70+0.1*units;
+        return amt+amt*0.1+220+35.70;
     }
 
     void sendData(){
@@ -409,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     message = message.concat(line);
                 }
-                message = message.concat("\nAdditional Charges:\n\n10% Duty\n₹200 Fixed Charge\n₹35.7 Meter rent\n10 paise per unit Fuel surcharge");
+                message = message.concat("\nAdditional Charges:\n\n10% Duty\n₹220 Fixed Charge\n₹35.7 Meter rent");
                 new AlertDialog.Builder(this)
                         .setTitle("Rate Info")
                         .setMessage(message)

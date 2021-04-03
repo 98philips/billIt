@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-keep class com.eve.bill_it.Report { *; }
+-keep class com.eve.bill_it.ThemePicker { *; }
+-keep class com.eve.bill_it.TimeCompare { *; }
+-keep class com.eve.bill_it.MultiModeListener { *; }
+
